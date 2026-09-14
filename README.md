@@ -52,6 +52,24 @@ The JSON structure contains:
 ```
 *The plugin automatically enforces a secure `0600` file permission (readable/writable only by the owner).*
 
+### TLS Certificate (Self-Signed / Private CA)
+
+If your Paperless-ngx instance uses a self-signed or private CA certificate, the plugin will fail API requests with `SSL certificate verify result: self-signed certificate`.
+
+To fix this, export your server's certificate and place it at:
+```
+~/.config/omarchy/paperless-ca.pem
+```
+
+For example:
+```bash
+openssl s_client -connect your-paperless-host:443 -servername your-paperless-host </dev/null \
+  | openssl x509 > ~/.config/omarchy/paperless-ca.pem
+chmod 600 ~/.config/omarchy/paperless-ca.pem
+```
+
+The plugin will automatically use this CA file for all curl requests when present, without disabling TLS validation.
+
 ---
 
 ## Installation & Setup

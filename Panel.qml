@@ -21,7 +21,7 @@ Panel {
   property var tags: []
   property var inboxDocuments: []
   property int inboxCount: 0
-  property string barText: inboxCount > 0 ? " " + inboxCount : ""
+  property string barText: inboxCount > 0 ? " " + inboxCount : ""
 
   property var correspondentOptions: []
   property int inboxTagId: 1
@@ -164,6 +164,8 @@ Panel {
             + "}\n"
             + "trap cleanup EXIT\n"
             + "printf 'request = \"%s\"\\nurl = \"%s\"\\nheader = \"Authorization: Token %s\"\\n' \"$METHOD\" \"$URL\" \"$TOKEN\" > \"$CURL_CFG\"\n"
+            + "CA_FILE=\"$HOME/.config/omarchy/paperless-ca.pem\"\n"
+            + "if [ -r \"$CA_FILE\" ]; then printf 'cacert = \"%s\"\\n' \"$CA_FILE\" >> \"$CURL_CFG\"; fi\n"
             + "if [ -n \"$BODY_TEMP\" ]; then\n"
             + "  printf 'header = \"Content-Type: application/json\"\\ndata-binary = \"@%s\"\\n' \"$BODY_TEMP\" >> \"$CURL_CFG\"\n"
             + "fi\n"
@@ -228,11 +230,14 @@ Panel {
             + "  rm -f \"$TEMP_OUT\" \"$HEADER_OUT\"\n"
             + "}\n"
             + "trap cleanup EXIT\n"
+            + "CA_ARGS=()\n"
+            + "CA_FILE=\"$HOME/.config/omarchy/paperless-ca.pem\"\n"
+            + "if [ -r \"$CA_FILE\" ]; then CA_ARGS=(--cacert \"$CA_FILE\"); fi\n"
             + "EXTRA_FORM=\"\"\n"
             + "if [ -n \"$CORR\" ]; then\n"
             + "  EXTRA_FORM=\"--form correspondent=$CORR\"\n"
             + "fi\n"
-            + "curl -s --connect-timeout 10 --max-time 120 \\\n"
+            + "curl -s --connect-timeout 10 --max-time 120 \"${CA_ARGS[@]}\" \\\n"
             + "  -H \"Authorization: Token $TOKEN\" \\\n"
             + "  -F \"document=@$FILE_PATH\" \\\n"
             + "  $EXTRA_FORM \\\n"
@@ -326,17 +331,17 @@ Panel {
       }
 
       var task = tasks[0]
-      var status = task.status || ""
+      var status = (task.status || "").toLowerCase()
 
       for (var i = 0; i < root.uploadQueue.length; i++) {
         if (root.uploadQueue[i].path === filePath) {
-          if (status === "SUCCESS") {
+          if (status === "success") {
             root.uploadQueue[i].status = "completed"
-            root.uploadQueue[i].relatedDocument = task.related_document || null
-            root.uploadQueue[i].result = task.result || ""
+            root.uploadQueue[i].relatedDocument = task.related_document_ids || null
+            root.uploadQueue[i].result = task.result_data || ""
             root.uploadQueue = root.uploadQueue.slice()
             root.refresh()
-          } else if (status === "FAILURE" || status === "REVOKED") {
+          } else if (status === "failure" || status === "revoked") {
             root.uploadQueue[i].status = "error"
             root.uploadQueue[i].error = task.result || "Processing failed"
             root.uploadQueue = root.uploadQueue.slice()
