@@ -46,7 +46,6 @@ Panel {
   // --- Upload queue ---
   property var uploadQueue: []
   property bool isUploading: false
-  property var uploadResults: []
   property string corrFeedback: ""
   property bool corrFeedbackIsError: false
 
@@ -343,7 +342,7 @@ Panel {
             root.refresh()
           } else if (status === "failure" || status === "revoked") {
             root.uploadQueue[i].status = "error"
-            root.uploadQueue[i].error = task.result || "Processing failed"
+            root.uploadQueue[i].error = task.result_data || "Processing failed"
             root.uploadQueue = root.uploadQueue.slice()
           } else {
             setTimeout(function() { root.pollTaskStatus(filePath, taskId) }, 3000)
@@ -1107,7 +1106,7 @@ Panel {
 
                 Text {
                   anchors.centerIn: parent
-                  text: "+ Ajouter des documents"
+                  text: "+ Add documents"
                   color: addDocMouse.containsMouse ? "#ffffff" : root.contentForeground
                   font.family: root.contentFontFamily
                   font.pixelSize: Style.font.body
