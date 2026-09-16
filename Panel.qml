@@ -136,7 +136,8 @@ Panel {
       return
     }
 
-    var cmd = "read -r TOKEN\n"
+    var cmd = "set -o pipefail\n"
+            + "read -r TOKEN\n"
             + "read -r BODY\n"
             + "METHOD=\"$1\"\n"
             + "URL=\"$2\"\n"
@@ -286,6 +287,8 @@ Panel {
 
   function refresh() {
     if (root.paperlessUrl && root.paperlessToken) {
+      root.fetchCorrespondents()
+      root.fetchTags()
       root.fetchInbox()
     }
   }
@@ -477,8 +480,6 @@ Panel {
             var cfg = JSON.parse(raw)
             root.paperlessUrl = cfg.url
             root.paperlessToken = cfg.token
-            root.fetchCorrespondents()
-            root.fetchTags()
             root.refresh()
           } catch(e) {
             console.log("Error parsing paperless config:", e)
